@@ -29,9 +29,7 @@ main:	# Start of code section
 
 
     #store parameters and address.
-    addi $sp, $sp -16
-    sw $a0, 12($sp) #store low
-    sw $a1, 8($sp)  #store high
+    addi $sp, $sp -8
     sw $ra, 4($sp)  #store return address
     sw $s0, 0($sp)  #store size of array, n
 
@@ -39,9 +37,7 @@ main:	# Start of code section
     #restore parameters and address.
     lw $s0, 0($sp)  #restore size of array, n
     lw $ra, 4($sp)  #restore return address
-    lw $a1, 8($sp)  #restore high
-    lw $a0, 12($sp) #restore low
-    addi $sp, $sp 16
+    addi $sp, $sp 8
 
 
 
