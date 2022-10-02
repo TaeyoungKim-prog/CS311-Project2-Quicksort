@@ -22,6 +22,29 @@ main:	# Start of code section
     add $t2, $zero, $zero #initialize as the first position of array
     jal addNumbersToArray
 
+    #declare high and low
+    addi $a0, $zero, 0 #a0 contains low = 0
+    addi $t0, $s0, -1 # n-1
+    add $a1, $zero, $t0#a0 contains high = n-1
+
+
+    #store parameters and address.
+    addi $sp, $sp -16
+    sw $a0, 12($sp) #store low
+    sw $a1, 8($sp)  #store high
+    sw $ra, 4($sp)  #store return address
+    sw $s0, 0($sp)  #store size of array, n
+
+    
+    #restore parameters and address.
+    lw $s0, 0($sp)  #restore size of array, n
+    lw $ra, 4($sp)  #restore return address
+    lw $a1, 8($sp)  #restore high
+    lw $a0, 12($sp) #restore low
+    addi $sp, $sp 16
+
+
+
     add $t1, $s0, $zero #t1 stores i = n.
     add $t2, $zero, $zero #initialize as the first position of array
     jal printNumbersOfArray
