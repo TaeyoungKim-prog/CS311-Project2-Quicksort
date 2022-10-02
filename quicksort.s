@@ -28,18 +28,15 @@ main:	# Start of code section
     add $a1, $zero, $t0#a0 contains high = n-1
 
 
-    #store parameters and address.
-    addi $sp, $sp -8
+    #store address. have to store argument only if the function has passed arguments(parameter)
+    addi $sp, $sp -4
     sw $ra, 4($sp)  #store return address
-    sw $s0, 0($sp)  #store size of array, n
 
+    jal quicksort
     
     #restore parameters and address.
-    lw $s0, 0($sp)  #restore size of array, n
     lw $ra, 4($sp)  #restore return address
-    addi $sp, $sp 8
-
-
+    addi $sp, $sp 4
 
     add $t1, $s0, $zero #t1 stores i = n.
     add $t2, $zero, $zero #initialize as the first position of array
@@ -77,7 +74,21 @@ printNumbersOfArray: # loop that iterates 5 times
 
 
 quicksort:	# quick sort.
-	
+    #If not main, whenever we are using $s we need to save it to stack.
+	addi $sp, $sp, -4
+    sw $s0, 0($sp)  #store size of array, n
+
+    #save return address and argument, as quicksort is non-leaf.
+	addi $sp, $sp, -12
+    sw $ra, 8($sp)  #return address
+    sw $a0, 4($sp)  #argument low
+    sw $a1, 0($sp)  #argument high
+
+
+    lw $s0, 0($sp)  #restore size of array, n
+	addi $sp, $sp, 4
+
+partition:
 
 
 # BLANK LINE AT THE END TO KEEP SPIM HAPPY!
