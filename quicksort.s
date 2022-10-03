@@ -5,6 +5,7 @@
 
     out_string: .asciiz "\nEnter number of elements to be sorted: "
     out_string_two: .asciiz "\n"
+    
     .text
 	
 .globl main
@@ -30,12 +31,12 @@ main:	# Start of code section
 
     #store address. have to store argument only if the function has passed arguments(parameter)
     addi $sp, $sp -4
-    sw $ra, 4($sp)  #store return address
+    sw $ra, 0($sp)  #store return address
 
     jal quicksort
     
     #restore parameters and address.
-    lw $ra, 4($sp)  #restore return address
+    lw $ra, ($sp)  #restore return address
     addi $sp, $sp 4
 
     add $t1, $s0, $zero #t1 stores i = n.
@@ -85,8 +86,17 @@ quicksort:	# quick sort.
     sw $a1, 0($sp)  #argument high
 
 
+
+    lw $a1, 0($sp)  #argument high
+    lw $a0, 4($sp)  #argument low
+    lw $ra, 8($sp)  #return address
+	addi $sp, $sp, 12
+
+
     lw $s0, 0($sp)  #restore size of array, n
 	addi $sp, $sp, 4
+    jr		$ra					# jump to $ra
+    
 
 partition:
 
