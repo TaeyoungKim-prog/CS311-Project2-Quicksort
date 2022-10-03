@@ -33,6 +33,7 @@ main:	# Start of code section
     addi $sp, $sp -4
     sw $ra, 0($sp)  #store return address
 
+
     jal quicksort
     
     #restore parameters and address.
@@ -85,7 +86,7 @@ quicksort:	# quick sort.
     sw $a0, 4($sp)  #argument low
     sw $a1, 0($sp)  #argument high
 
-
+    jal partition
 
     lw $a1, 0($sp)  #argument high
     lw $a0, 4($sp)  #argument low
@@ -99,6 +100,25 @@ quicksort:	# quick sort.
     
 
 partition:
+
+    #If not main, whenever we are using $s we need to save it to stack.
+	addi $sp, $sp, -16
+    sw $s0, 12($sp)  #store $s0
+    sw $s1, 8($sp)  #store $s1
+    sw $s2, 4($sp)  #store $s2
+    sw $s3, 0($sp)  #store $s3
+
+    move 	$s0, $zero		# $t0 = pivot = 0
+    move 	$s1, $zero		# $t1 = i = 0
+    move 	$s2, $a0		# $t2 = mid_left = low
+    move 	$s3, $a1		# $t3 = mid_right = high
+
+    #restore saves
+    lw $s3, 0($sp)  #restore $s3
+    lw $s2, 4($sp)  #restore $s2
+    lw $s1, 8($sp)  #restore $s1
+    lw $s0, 12($sp) #restore $s0
+	addi $sp, $sp, 16
 
 
 # BLANK LINE AT THE END TO KEEP SPIM HAPPY!
