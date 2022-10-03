@@ -166,6 +166,15 @@ partition:
 
     jal loop
 
+    #restore saves
+    lw $s3, 0($sp)  #restore $s3
+    lw $s2, 4($sp)  #restore $s2
+    lw $s1, 8($sp)  #restore $s1
+    lw $s0, 12($sp) #restore $s0
+	addi $sp, $sp, 16
+
+    jr		$ra	
+
 loop:
     j loop_right
 
@@ -218,20 +227,36 @@ loop_left:
 
 
 
-if:
-    
+if: #i < mid right
+    slt $t0, $s1, $s3  # i < mid_right
+    beq $t0, $zero, ra #if above false go back to jump
 
+    #A[mid_left]
+    sll $t0, $s2, 2
+    lw $t1, array($t0)
 
+    #A[mid_right]
+    sll $t0, $s3, 2
+    lw $t2, array($t0)
 
+    #A[mid_left++]=A[mid_right]
+    sw $t2, array($t1)
+    addi $s2, $s2, 1
 
-    #restore saves
-    lw $s3, 0($sp)  #restore $s3
-    lw $s2, 4($sp)  #restore $s2
-    lw $s1, 8($sp)  #restore $s1
-    lw $s0, 12($sp) #restore $s0
-	addi $sp, $sp, 16
+    #A[i]
+    sll $t0, $s1, 2
+    lw $t3, array($t0)
 
-    jr		$ra	
+    #A[mid_right--]=A[i]
+    sw $t3, array($t2)
+    addi $s3, $s3, -1
+
+    #A[i++] = pivot
+    sw $s0, array($t3)
+    addi $s1, $s1, 1
+
+ra: jr		$ra					# jump back to partition
+
 
 
 # BLANK LINE AT THE END TO KEEP SPIM HAPPY!
