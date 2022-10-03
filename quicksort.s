@@ -146,9 +146,25 @@ partition:
     #i = low + (1664525*(unsigned)high + 22695477*(unsigned)low)%(high-low+1);
     add $s1, $a0, $t6
 
-    li $v0, 1
-    move $a0, $s1
-    syscall
+    #pivot = A[i]
+    sll $t1, $s1, 2
+    lw $t0, array($t1) #t0 = A[i]
+    move $s0, $t0
+
+    #A[i] = A[low]
+    sll $t1, $a0, 2 #low * 4
+    lw $t0, array($t1) #t0 = A[low]
+    sll $t2, $s1, 2 #i * 4
+    sw $t0, array($t2)
+
+
+    #A[low] = pivot
+    sw $s0, array($t0)
+
+    #i=low + 1
+    addi $s1, $s1, 1
+
+
 
     #restore saves
     lw $s3, 0($sp)  #restore $s3
