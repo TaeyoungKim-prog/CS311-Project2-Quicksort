@@ -40,6 +40,10 @@ main:	# Start of code section
     lw $ra, ($sp)  #restore return address
     addi $sp, $sp 4
 
+    li $v0, 4
+	la $a0, out_string_two
+	syscall		
+
     add $t1, $s0, $zero #t1 stores i = n.
     add $t2, $zero, $zero #initialize as the first position of array
     jal printNumbersOfArray
@@ -115,11 +119,11 @@ partition:
 
     #make 1664525
     lui $t0, 25
-    ori $t0, $t0, 26215 #t0 = 1664525
+    ori $t0, $t0, 26125 #t0 = 1664525
     #make 22695477
     lui $t1,346
     ori $t1, $t1, 20021 #t1 = 22695477
-    
+
     #1664525*(unsigned)high
     multu $t0, $a1
     mflo $t2
@@ -127,7 +131,7 @@ partition:
     #22695477*(unsigned)low
     multu $t1, $a0
     mflo $t3
-
+    
     #(1664525*(unsigned)high + 22695477*(unsigned)low)
     add $t4, $t2, $t3
 
@@ -142,13 +146,9 @@ partition:
     #i = low + (1664525*(unsigned)high + 22695477*(unsigned)low)%(high-low+1);
     add $s1, $a0, $t6
 
-    
-    
-    
-
-
-
-
+    li $v0, 1
+    move $a0, $s1
+    syscall
 
     #restore saves
     lw $s3, 0($sp)  #restore $s3
@@ -156,6 +156,8 @@ partition:
     lw $s1, 8($sp)  #restore $s1
     lw $s0, 12($sp) #restore $s0
 	addi $sp, $sp, 16
+
+    jr		$ra	
 
 
 # BLANK LINE AT THE END TO KEEP SPIM HAPPY!
