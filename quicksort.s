@@ -113,6 +113,43 @@ partition:
     move 	$s2, $a0		# $t2 = mid_left = low
     move 	$s3, $a1		# $t3 = mid_right = high
 
+    #make 1664525
+    lui $t0, 25
+    ori $t0, $t0, 26215 #t0 = 1664525
+    #make 22695477
+    lui $t1,346
+    ori $t1, $t1, 20021 #t1 = 22695477
+    
+    #1664525*(unsigned)high
+    multu $t0, $a1
+    mflo $t2
+    
+    #22695477*(unsigned)low
+    multu $t1, $a0
+    mflo $t3
+
+    #(1664525*(unsigned)high + 22695477*(unsigned)low)
+    add $t4, $t2, $t3
+
+    #high - low + 1
+    sub		$t5, $a1, $a0		#high - low
+    addi    $t5, $t5, 1
+
+    #(1664525*(unsigned)high + 22695477*(unsigned)low)%(high-low+1);
+    div		$t4, $t5			# $t0 / $t1
+    mfhi	$t6					# $t3 = $t0 mod $t1
+
+    #i = low + (1664525*(unsigned)high + 22695477*(unsigned)low)%(high-low+1);
+    add $s1, $a0, $t6
+
+    
+    
+    
+
+
+
+
+
     #restore saves
     lw $s3, 0($sp)  #restore $s3
     lw $s2, 4($sp)  #restore $s2
