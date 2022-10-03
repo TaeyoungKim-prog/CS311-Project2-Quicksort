@@ -112,10 +112,10 @@ partition:
     sw $s2, 4($sp)  #store $s2
     sw $s3, 0($sp)  #store $s3
 
-    move 	$s0, $zero		# $t0 = pivot = 0
-    move 	$s1, $zero		# $t1 = i = 0
-    move 	$s2, $a0		# $t2 = mid_left = low
-    move 	$s3, $a1		# $t3 = mid_right = high
+    move 	$s0, $zero		# $s0 = pivot = 0
+    move 	$s1, $zero		# $s1 = i = 0
+    move 	$s2, $a0		# $s2 = mid_left = low
+    move 	$s3, $a1		# $s3 = mid_right = high
 
     #make 1664525
     lui $t0, 25
@@ -163,6 +163,64 @@ partition:
 
     #i=low + 1
     addi $s1, $s1, 1
+
+    jal loop
+
+loop:
+    j loop_right
+
+loop_right:
+    #mid_right >= i
+    slt $t0, $s3, $s1 #if mid_right < i
+    bne $t0, $zero, loop_left #if above true, go to next while
+
+    #A[mid_right] > pivot
+    sll $t0, $t3, 2
+    lw $t1, array($t0) #t1 = A[mid_right] 
+    slt $t0, $s0, $t1 #if mid_right > pivot
+    beq $t0, $zero, loop_left #if above false, go to next while
+
+    addi $s3, $s3, -1 #mid_right--;
+
+    j loop_right
+
+loop_left:
+    slt $t0, $s3, $s1 #if mid_right < i
+    bne $t0, $zero, if #if above true, go to next 
+
+    #A[i] <= pivot
+    sll $t0, $s1, 2
+    lw $t1, array($t0) #A[i]
+    slt $t2, $s0, $t1 # pivot < A[i]
+    bne $t2, $zero, if # if above true exit to if
+
+    #A[mid_left]
+    sll $t0, $s2, 2
+    lw $t1, array($t0)
+
+    #A[i]
+    sll $t0, $s1, 2
+    lw $t2, array($t0)
+
+    #A[mid_left] = A[i]
+    sw $t2, array($t1)
+
+    #mid_left ++
+    addi $s2, $s2, 1
+
+    #A[i] = pivot
+    sw $s0, array($t2)
+
+    #i++
+    addi $s1, $s1, 1
+
+    j loop_left
+
+
+
+if:
+    
+
 
 
 
