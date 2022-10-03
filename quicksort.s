@@ -34,15 +34,17 @@ main:	# Start of code section
 
 
     #store address. have to store argument only if the function has passed arguments(parameter)
-    addi $sp, $sp -4
+    addi $sp, $sp -8
     sw $ra, 0($sp)  #store return address
+    sw $s0, 4($sp)  #store n
 
 
     jal quicksort
     
     #restore parameters and address.
-    lw $ra, ($sp)  #restore return address
-    addi $sp, $sp 4
+    sw $s0, 4($sp)  #restore n
+    lw $ra, 0($sp)  #restore return address
+    addi $sp, $sp 8
 
     li $v0, 4
 	la $a0, out_string_two
@@ -135,12 +137,6 @@ quicksort:	# quick sort.
 
 partition:
 
-    #If not main, whenever we are using $s we need to save it to stack.
-	addi $sp, $sp, -16
-    sw $s0, 12($sp)  #store $s0
-    sw $s1, 8($sp)  #store $s1
-    sw $s2, 4($sp)  #store $s2
-    sw $s3, 0($sp)  #store $s3
 
     move 	$s0, $zero		# $s0 = pivot = 0
     move 	$s1, $zero		# $s1 = i = 0
@@ -189,23 +185,23 @@ partition:
 
 
     #A[low] = pivot
-    sw $s0, array($t0)
+    sw $s0, array($t1)
 
     #i=low + 1
     addi $s1, $s1, 1
 
+	addi $sp, $sp, -4
+    sw $ra, 0($sp)  #return address
+
     jal loop
+
+    lw $ra, 0($sp)  #return address
+	addi $sp, $sp, 4
 
     #store mid_left and mid_right in pointers
     sw $s3, mid_right_pointer
     sw $s2, mid_left_pointer
 
-    #restore saves
-    lw $s3, 0($sp)  #restore $s3
-    lw $s2, 4($sp)  #restore $s2
-    lw $s1, 8($sp)  #restore $s1
-    lw $s0, 12($sp) #restore $s0
-	addi $sp, $sp, 16
 
     jr		$ra	
 
@@ -218,7 +214,7 @@ loop_right:
     bne $t0, $zero, loop_left #if above true, go to next while
 
     #A[mid_right] > pivot
-    sll $t0, $t3, 2
+    sll $t0, $s3, 2
     lw $t1, array($t0) #t1 = A[mid_right] 
     slt $t0, $s0, $t1 #if mid_right > pivot
     beq $t0, $zero, loop_left #if above false, go to next while
