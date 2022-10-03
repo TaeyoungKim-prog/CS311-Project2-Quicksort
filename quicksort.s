@@ -5,6 +5,10 @@
 
     out_string: .asciiz "\nEnter number of elements to be sorted: "
     out_string_two: .asciiz "\n"
+
+
+    mid_left_pointer: .word 4
+    mid_right_pointer: .word 4
     
     .text
 	
@@ -88,18 +92,44 @@ quicksort:	# quick sort.
 	addi $sp, $sp, -12
     sw $ra, 8($sp)  #return address
     sw $a0, 4($sp)  #argument low
-    sw $a1, 0($sp)  #argument high
+    sw $a1, 0($sp)  #argument high  
+
+    li $v0, 9
+    li $a0, 1
+    syscall
+    sw $v0, mid_left_pointer
+
+    li $v0, 9
+    li $a0, 1
+    syscall
+    sw $v0, mid_right_pointer
 
     jal partition
 
+    lw $a0, 4($sp)  #load argument low
+
+    #set argument high as mid_left - 1
+    lw $a1, mid_left_pointer
+    addi $a1, $a1, -1
+
+    jal quicksort
+
+    #set argument low as mid_right + 1
+    lw $a0, mid_right_pointer
+    addi $a0, $a0, 1
+
+    lw $a1, 0($sp)  #load argument high
+
+    jal quicksort
+
     lw $a1, 0($sp)  #argument high
-    lw $a0, 4($sp)  #argument low
     lw $ra, 8($sp)  #return address
 	addi $sp, $sp, 12
 
 
     lw $s0, 0($sp)  #restore size of array, n
 	addi $sp, $sp, 4
+
     jr		$ra					# jump to $ra
     
 
@@ -165,6 +195,10 @@ partition:
     addi $s1, $s1, 1
 
     jal loop
+
+    #store mid_left and mid_right in pointers
+    sw $s3, mid_right_pointer
+    sw $s2, mid_left_pointer
 
     #restore saves
     lw $s3, 0($sp)  #restore $s3
