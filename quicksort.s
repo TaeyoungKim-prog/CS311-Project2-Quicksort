@@ -6,9 +6,6 @@
     out_string: .asciiz "\nEnter number of elements to be sorted: "
     out_string_two: .asciiz "\n"
 
-
-    mid_left_pointer: .word 4
-    mid_right_pointer: .word 4
     
     .text
 	
@@ -39,13 +36,9 @@ main:	# Start of code section
     sw $s0, 4($sp)  #store n
 
     jal quicksort
-
-	li $v0, 1
-	move $a0, $t1
-	syscall	
     
     #restore parameters and address.
-    sw $s0, 4($sp)  #restore n
+    lw $s0, 4($sp)  #restore n
     lw $ra, 0($sp)  #restore return address
     addi $sp, $sp 8
 
@@ -55,7 +48,11 @@ main:	# Start of code section
 
     add $t1, $s0, $zero #t1 stores i = n.
     add $t2, $zero, $zero #initialize as the first position of array
+
     jal printNumbersOfArray
+
+    li $v0, 10
+	syscall
 
 
 addNumbersToArray: # loop that iterates 5 times
@@ -89,60 +86,77 @@ printNumbersOfArray: # loop that iterates 5 times
 
 
 quicksort:	# quick sort.
-    #if low<high end quicksort
+    #if low<high is false end quicksort
     slt $t0, $a0, $a1
     beq $t0, $zero, ra
 
-    #If not main, whenever we are using $s we need to save it to stack.
-	addi $sp, $sp, -4
-    sw $s0, 0($sp)  #store size of array, n
+    #declare mid_left,mid_right.
+
+    move $t8, $zero #mid_left
+    move $t9, $zero, #mid_right
 
     #save return address and argument, as quicksort is non-leaf.
 	addi $sp, $sp, -12
     sw $ra, 8($sp)  #return address
     sw $a0, 4($sp)  #argument low
-    sw $a1, 0($sp)  #argument high  
+    sw $a1, 0($sp)  #argument high
 
-    li $v0, 9
-    li $a0, 4
-    syscall
-    sw $v0, mid_left_pointer
+    jal partition #(low,high, midleft, midright)
 
-    li $v0, 9
-    li $a0, 4
-    syscall
-    sw $v0, mid_right_pointer
-
-    jal partition
-
-    lw $a0, 4($sp)  #load argument low
-
-    #set argument high as mid_left - 1
-    lw $a1, mid_left_pointer
-    addi $a1, $a1, -1
-
-    jal quicksort
-
-    #set argument low as mid_right + 1
-    lw $a0, mid_right_pointer
-    addi $a0, $a0, 1
-    lw $a1, 0($sp)  #load argument high
-
-    jal quicksort
-
+    #load return address and argument, as quicksort is non-leaf.
     lw $a1, 0($sp)  #argument high
+    lw $a0, 4($sp)  #argument low
     lw $ra, 8($sp)  #return address
 	addi $sp, $sp, 12
 
+    #save return address and argument, as quicksort is non-leaf.
+    addi $sp, $sp, -20
+    sw $ra, 16($sp)  #return address
+    sw $a0, 12($sp)  #argument low
+    sw $a1, 8($sp)  #argument high
+    sw $t8, 4($sp) #mid_left*
+    sw $t9, 0($sp) #mid_right*
 
-    lw $s0, 0($sp)  #restore size of array, n
-	addi $sp, $sp, 4
+    #change high to mid_left -1
+    addi $t8, $t8, -1
+    move $a1, $t8
+
+    jal quicksort # (low, midleft-1)
+
+    #load return address and argument, as quicksort is non-leaf.
+    lw $t9, 0($sp) #mid_right*
+    lw $t8, 4($sp) #mid_left*
+    lw $a1, 8($sp)  #argument high
+    lw $a0, 12($sp)  #argument low
+    lw $ra, 16($sp)  #return address
+    addi $sp, $sp, 20
+    
+    #save return address and argument, as quicksort is non-leaf.
+    addi $sp, $sp, -20
+    sw $ra, 16($sp)  #return address
+    sw $a0, 12($sp)  #argument low
+    sw $a1, 8($sp)  #argument high
+    sw $t8, 4($sp) #mid_left*
+    sw $t9, 0($sp) #mid_right*
+
+    #mid_right+1 into low
+    addi $t9, $t9, 1
+    move $a0, $t9
+
+    jal quicksort #( midright+1, high)
+
+    #load return address and argument, as quicksort is non-leaf.
+    lw $t9, 0($sp) #mid_right*
+    lw $t8, 4($sp) #mid_left*
+    lw $a1, 8($sp)  #argument high
+    lw $a0, 12($sp)  #argument low
+    lw $ra, 16($sp)  #return address
+    addi $sp, $sp, 20
 
     jr		$ra					# jump to $ra
     
 
 partition:
-
 
     move 	$s0, $zero		# $s0 = pivot = 0
     move 	$s1, $zero		# $s1 = i = 0
@@ -192,10 +206,11 @@ partition:
 
 
     #A[low] = pivot
+    sll $t1, $a0, 2 #low * 4
     sw $s0, array($t1)
 
     #i=low + 1
-    addi $s1, $s1, 1
+    addi $s1, $a0, 1
 
 	addi $sp, $sp, -4
     sw $ra, 0($sp)  #return address
@@ -205,10 +220,9 @@ partition:
     lw $ra, 0($sp)  #return address
 	addi $sp, $sp, 4
 
-    #store mid_left and mid_right in pointers
-    sw $s3, mid_right_pointer
-    sw $s2, mid_left_pointer
-
+    #store new mid_left and right
+    move $t8, $s2
+    move $t9, $s3
 
     jr		$ra	
 
@@ -223,7 +237,7 @@ loop_right:
     #A[mid_right] > pivot
     sll $t0, $s3, 2
     lw $t1, array($t0) #t1 = A[mid_right] 
-    slt $t0, $s0, $t1 #if mid_right > pivot
+    slt $t0, $s0, $t1 #if A[mid_right] > pivot
     beq $t0, $zero, loop_left #if above false, go to next while
 
     addi $s3, $s3, -1 #mid_right--;
@@ -249,13 +263,15 @@ loop_left:
     lw $t2, array($t0)
 
     #A[mid_left] = A[i]
-    sw $t2, array($t1)
+    sll $t4, $s2, 2 
+    sw $t2, array($t4)
 
     #mid_left ++
     addi $s2, $s2, 1
-
+     
     #A[i] = pivot
-    sw $s0, array($t2)
+    sll $t0, $s1, 2
+    sw $s0, array($t0)
 
     #i++
     addi $s1, $s1, 1
@@ -268,6 +284,11 @@ if: #i < mid right
     slt $t0, $s1, $s3  # i < mid_right
     beq $t0, $zero, ra #if above false go back to jump
 
+    #pivot    s0
+    #   i     s1
+    #mid_left s2
+    #mid_rights3
+
     #A[mid_left]
     sll $t0, $s2, 2
     lw $t1, array($t0)
@@ -277,7 +298,8 @@ if: #i < mid right
     lw $t2, array($t0)
 
     #A[mid_left++]=A[mid_right]
-    sw $t2, array($t1)
+    sll $t0, $s2, 2
+    sw $t2, array($t0)
     addi $s2, $s2, 1
 
     #A[i]
@@ -285,12 +307,16 @@ if: #i < mid right
     lw $t3, array($t0)
 
     #A[mid_right--]=A[i]
-    sw $t3, array($t2)
+    sll $t5, $s3, 2
+    sw $t3, array($t5)
     addi $s3, $s3, -1
 
     #A[i++] = pivot
-    sw $s0, array($t3)
+    sll $t0, $s1, 2
+    sw $s0, array($t0)
     addi $s1, $s1, 1
+
+    j loop
 
 ra: jr		$ra					# jump back to partition
 
