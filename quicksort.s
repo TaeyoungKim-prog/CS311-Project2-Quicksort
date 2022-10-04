@@ -38,8 +38,11 @@ main:	# Start of code section
     sw $ra, 0($sp)  #store return address
     sw $s0, 4($sp)  #store n
 
-
     jal quicksort
+
+	li $v0, 1
+	move $a0, $t1
+	syscall	
     
     #restore parameters and address.
     sw $s0, 4($sp)  #restore n
@@ -86,6 +89,10 @@ printNumbersOfArray: # loop that iterates 5 times
 
 
 quicksort:	# quick sort.
+    #if low<high end quicksort
+    slt $t0, $a0, $a1
+    beq $t0, $zero, ra
+
     #If not main, whenever we are using $s we need to save it to stack.
 	addi $sp, $sp, -4
     sw $s0, 0($sp)  #store size of array, n
@@ -97,12 +104,12 @@ quicksort:	# quick sort.
     sw $a1, 0($sp)  #argument high  
 
     li $v0, 9
-    li $a0, 1
+    li $a0, 4
     syscall
     sw $v0, mid_left_pointer
 
     li $v0, 9
-    li $a0, 1
+    li $a0, 4
     syscall
     sw $v0, mid_right_pointer
 
@@ -119,7 +126,6 @@ quicksort:	# quick sort.
     #set argument low as mid_right + 1
     lw $a0, mid_right_pointer
     addi $a0, $a0, 1
-
     lw $a1, 0($sp)  #load argument high
 
     jal quicksort
@@ -146,6 +152,7 @@ partition:
     #make 1664525
     lui $t0, 25
     ori $t0, $t0, 26125 #t0 = 1664525
+
     #make 22695477
     lui $t1,346
     ori $t1, $t1, 20021 #t1 = 22695477
